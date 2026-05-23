@@ -43,7 +43,7 @@ mysql -u root pc_build_store < database/pc_build_store.sql
 
 | Member | Module | Branch |
 |--------|--------|--------|
-| Abdul Hanan (lead) | Dashboard & Reports + base | main |
+| Abdul Hanan (lead) | Dashboard & Reports + base | master |
 | Haroon | Build Catalog | haroon-build-catalog |
 | Aitzaz | GPU Upgrades | aitzaz-gpu-upgrades |
 | Ahmad | Billing | ahmad-billing |
