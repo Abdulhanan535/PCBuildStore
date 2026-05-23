@@ -6,7 +6,40 @@ public class DashboardGUI extends javax.swing.JFrame {
 
     public DashboardGUI() {
         initComponents();
+        applyCustomStyles();
         setVisible(true);
+    }
+
+    private void applyCustomStyles() {
+        // Add padding around the main content so it doesn't stick to the edges
+        pnlContent.setBorder(javax.swing.BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        
+        // Make the buttons look modern and sleek!
+        javax.swing.JButton[] buttons = {btnBuildCatalog, btnGpuUpgrades, btnBilling, btnReports};
+        java.awt.Color btnColor = new java.awt.Color(41, 128, 185); // Professional blue
+        java.awt.Color hoverColor = new java.awt.Color(52, 152, 219); // Lighter blue for hover
+        
+        for (javax.swing.JButton btn : buttons) {
+            btn.setBackground(btnColor);
+            btn.setForeground(java.awt.Color.WHITE);
+            btn.setFocusPainted(false);
+            // Using a compound border to give it some internal padding
+            btn.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new java.awt.Color(31, 97, 141), 2),
+                javax.swing.BorderFactory.createEmptyBorder(15, 10, 15, 10)
+            ));
+            btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+            
+            // Add hover effects
+            btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    btn.setBackground(hoverColor);
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    btn.setBackground(btnColor);
+                }
+            });
+        }
     }
 
     @SuppressWarnings("unchecked")
