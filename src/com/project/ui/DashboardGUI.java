@@ -1,60 +1,117 @@
 package com.project.ui;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JOptionPane;
 
-public class DashboardGUI extends JFrame {
+public class DashboardGUI extends javax.swing.JFrame {
 
     public DashboardGUI() {
-        setTitle("PC Build Store - Dashboard");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 600);
-        setLocationRelativeTo(null);
-
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JLabel title = new JLabel("PC Build Store Management System", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 24));
-        mainPanel.add(title, BorderLayout.NORTH);
-
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        JButton btnBuildCatalog = new JButton("Build Catalog");
-        JButton btnGpuUpgrades = new JButton("GPU Upgrades");
-        JButton btnBilling = new JButton("Billing");
-        JButton btnReports = new JButton("Reports");
-
-        Dimension btnSize = new Dimension(200, 50);
-        for (JButton btn : new JButton[]{btnBuildCatalog, btnGpuUpgrades, btnBilling, btnReports}) {
-            btn.setPreferredSize(btnSize);
-            btn.setFont(new Font("Arial", Font.PLAIN, 16));
-        }
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        centerPanel.add(btnBuildCatalog, gbc);
-        gbc.gridx = 0; gbc.gridy = 1;
-        centerPanel.add(btnGpuUpgrades, gbc);
-        gbc.gridx = 0; gbc.gridy = 2;
-        centerPanel.add(btnBilling, gbc);
-        gbc.gridx = 0; gbc.gridy = 3;
-        centerPanel.add(btnReports, gbc);
-
-        btnBuildCatalog.addActionListener(e -> JOptionPane.showMessageDialog(this, "Build Catalog coming soon!"));
-        btnGpuUpgrades.addActionListener(e -> JOptionPane.showMessageDialog(this, "GPU Upgrades coming soon!"));
-        btnBilling.addActionListener(e -> JOptionPane.showMessageDialog(this, "Billing coming soon!"));
-        btnReports.addActionListener(e -> JOptionPane.showMessageDialog(this, "Reports coming soon!"));
-
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
-
-        JLabel footer = new JLabel("Developed by Abdul Hanan & Team", SwingConstants.CENTER);
-        footer.setFont(new Font("Arial", Font.ITALIC, 12));
-        mainPanel.add(footer, BorderLayout.SOUTH);
-
-        add(mainPanel);
+        initComponents();
         setVisible(true);
     }
+
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        pnlHeader = new javax.swing.JPanel();
+        lblTitle = new javax.swing.JLabel();
+        pnlContent = new javax.swing.JPanel();
+        pnlModules = new javax.swing.JPanel();
+        btnBuildCatalog = new javax.swing.JButton();
+        btnGpuUpgrades = new javax.swing.JButton();
+        btnBilling = new javax.swing.JButton();
+        btnReports = new javax.swing.JButton();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("PC Build Store Management System");
+        setBackground(new java.awt.Color(18, 22, 30));
+        setMinimumSize(new java.awt.Dimension(1100, 750));
+
+        pnlHeader.setBackground(new java.awt.Color(26, 42, 64));
+        pnlHeader.setPreferredSize(new java.awt.Dimension(1100, 100));
+        pnlHeader.setLayout(new java.awt.BorderLayout());
+
+        lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 26)); // NOI18N
+        lblTitle.setForeground(new java.awt.Color(255, 255, 255));
+        lblTitle.setText("  Dashboard & Reports");
+        pnlHeader.add(lblTitle, java.awt.BorderLayout.WEST);
+
+        getContentPane().add(pnlHeader, java.awt.BorderLayout.NORTH);
+
+        pnlContent.setBackground(new java.awt.Color(18, 22, 30));
+        pnlContent.setLayout(new java.awt.GridLayout(2, 1, 0, 20));
+
+        pnlModules.setBackground(new java.awt.Color(18, 22, 30));
+        pnlModules.setLayout(new java.awt.GridLayout(1, 4, 15, 0));
+
+        btnBuildCatalog.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnBuildCatalog.setText("Build Catalog");
+        btnBuildCatalog.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuildCatalogActionPerformed(evt);
+            }
+        });
+        pnlModules.add(btnBuildCatalog);
+
+        btnGpuUpgrades.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnGpuUpgrades.setText("GPU Upgrades");
+        btnGpuUpgrades.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGpuUpgradesActionPerformed(evt);
+            }
+        });
+        pnlModules.add(btnGpuUpgrades);
+
+        btnBilling.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnBilling.setText("Billing");
+        btnBilling.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBillingActionPerformed(evt);
+            }
+        });
+        pnlModules.add(btnBilling);
+
+        btnReports.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnReports.setText("Reports");
+        btnReports.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnReportsActionPerformed(evt);
+            }
+        });
+        pnlModules.add(btnReports);
+
+        pnlContent.add(pnlModules);
+
+        getContentPane().add(pnlContent, java.awt.BorderLayout.CENTER);
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void btnBuildCatalogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuildCatalogActionPerformed
+        JOptionPane.showMessageDialog(this, "Build Catalog opening...");
+    }//GEN-LAST:event_btnBuildCatalogActionPerformed
+
+    private void btnGpuUpgradesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGpuUpgradesActionPerformed
+        JOptionPane.showMessageDialog(this, "GPU Upgrades opening...");
+    }//GEN-LAST:event_btnGpuUpgradesActionPerformed
+
+    private void btnBillingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBillingActionPerformed
+        JOptionPane.showMessageDialog(this, "Billing opening...");
+    }//GEN-LAST:event_btnBillingActionPerformed
+
+    private void btnReportsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReportsActionPerformed
+        JOptionPane.showMessageDialog(this, "Reports opening...");
+    }//GEN-LAST:event_btnReportsActionPerformed
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBilling;
+    private javax.swing.JButton btnBuildCatalog;
+    private javax.swing.JButton btnGpuUpgrades;
+    private javax.swing.JButton btnReports;
+    private javax.swing.JLabel lblTitle;
+    private javax.swing.JPanel pnlContent;
+    private javax.swing.JPanel pnlHeader;
+    private javax.swing.JPanel pnlModules;
+    // End of variables declaration//GEN-END:variables
 }

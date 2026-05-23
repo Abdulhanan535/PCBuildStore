@@ -6,6 +6,6 @@ import com.project.ui.DashboardGUI;
  */
 public class Main {
     public static void main(String[] args) {
-        new DashboardGUI();
+        DashboardGUI gui = new DashboardGUI();
     }
 }

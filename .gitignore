@@ -1,4 +1,6 @@
 *.class
+AGENTS.md
+opencode.json
 build/
 dist/
 nbproject/private/
