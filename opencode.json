@@ -1,0 +1,24 @@
+{
+  "instructions": [
+    "Java 17 + Swing + MySQL (MariaDB via XAMPP) + JDBC. NetBeans Ant project (no Maven/Gradle, no module-info).",
+
+    "Build: from PCBuildStore/ run `ant clean; if ($?) { ant build }`",
+    "DB export: `mysqldump -u root pc_build_store > PCBuildStore/database/pc_build_store.sql`",
+    "DB import: `mysql -u root pc_build_store < PCBuildStore/database/pc_build_store.sql`",
+
+    "JDBC URL: jdbc:mysql://localhost:3306/pc_build_store?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+    "Connector JAR: PCBuildStore/lib/mysql-connector-j-9.7.0.jar on Classpath (not Modulepath).",
+    "MySQL: XAMPP default — root, no password, MariaDB 10.4.",
+    "Java source & target 17. main.class left empty in project.properties by design.",
+
+    "Package structure: database/ (DBConnection), models/ (Build, GPUOption, Bill), dao/ (CRUD), ui/ (Swing GUIs).",
+    "Entrypoint: com.project.Main -> DashboardGUI.",
+
+    "Module allocation (vertical slices): Hanan=Dashboard, Haroon=Build Catalog, Aitzaz=GPU Upgrades, Ahmad=Billing.",
+    "Branches: main, haroon-build-catalog, aitzaz-gpu-upgrades, ahmad-billing.",
+    "3 DB tables: builds, gpu_options, bills (seed data from old PF project).",
+
+    "Coding rules: no comments unless asked, no emojis in files, keep output concise.",
+    "AGENTS.md at project root has full project context."
+  ]
+}

@@ -1,0 +1,10 @@
+*.class
+build/
+dist/
+nbproject/private/
+nbbuild/
+nbdist/
+nbactions.xml
+*.log
+*.zip
+*.rar
