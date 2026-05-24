@@ -239,27 +239,13 @@ public class DashboardGUI extends JFrame {
     private void loadStats() {
         SwingUtilities.invokeLater(() -> {
             try {
-                var conn = java.sql.DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/pc_build_store?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
-                    "root", ""
-                );
-                var q = conn.prepareStatement("SELECT COUNT(*) FROM builds");
-                var r = q.executeQuery();
-                if (r.next()) s1.setText(String.valueOf(r.getInt(1)));
+                com.project.dao.BuildDAO buildDAO = new com.project.dao.BuildDAO();
+                com.project.dao.BillDAO billDAO = new com.project.dao.BillDAO();
 
-                q = conn.prepareStatement("SELECT COALESCE(SUM(final_price),0) FROM bills");
-                r = q.executeQuery();
-                if (r.next()) s2.setText("Rs." + String.format("%,d", r.getInt(1)));
-
-                q = conn.prepareStatement("SELECT COALESCE(AVG(performance_score),0) FROM builds");
-                r = q.executeQuery();
-                if (r.next()) s3.setText(String.format("%.0f", r.getDouble(1)));
-
-                q = conn.prepareStatement("SELECT COUNT(*) FROM bills");
-                r = q.executeQuery();
-                if (r.next()) s4.setText(String.valueOf(r.getInt(1)));
-
-                conn.close();
+                s1.setText(String.valueOf(buildDAO.getTotalBuilds()));
+                s2.setText("Rs." + String.format("%,d", billDAO.getTotalRevenue()));
+                s3.setText(String.format("%.0f", buildDAO.getAverageScore()));
+                s4.setText(String.valueOf(billDAO.getTotalBills()));
             } catch (Exception e) {
                 s1.setText("--");
                 s2.setText("--");
