@@ -1,5 +1,6 @@
 *.class
 AGENTS.md
+.Rules
 opencode.json
 build/
 dist/
