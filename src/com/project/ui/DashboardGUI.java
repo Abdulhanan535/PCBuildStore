@@ -24,18 +24,18 @@ import javax.swing.WindowConstants;
 
 public class DashboardGUI extends JFrame {
 
-    private static final Color BG = new Color(10, 12, 18);
-    private static final Color SIDEBAR = new Color(14, 17, 28);
-    private static final Color CARD = new Color(20, 25, 40);
-    private static final Color CARD_HOVER = new Color(28, 34, 54);
-    private static final Color BORDER = new Color(32, 40, 60);
-    private static final Color TEXT = new Color(240, 244, 250);
-    private static final Color MUTED = new Color(130, 145, 170);
-    private static final Color MINT = new Color(0, 212, 170);
-    private static final Color EMBER = new Color(255, 107, 53);
-    private static final Color VIOLET = new Color(124, 58, 237);
-    private static final Color ROSE = new Color(255, 68, 102);
-    private static final Color BLUE = new Color(59, 130, 246);
+    private static final Color BG = new Color(8, 8, 12);
+    private static final Color SIDEBAR = new Color(14, 14, 20);
+    private static final Color CARD = new Color(20, 20, 28);
+    private static final Color CARD_HOVER = new Color(28, 28, 38);
+    private static final Color BORDER = new Color(35, 35, 50);
+    private static final Color TEXT = new Color(245, 245, 250);
+    private static final Color MUTED = new Color(120, 120, 145);
+    private static final Color MINT = new Color(0, 255, 170);
+    private static final Color EMBER = new Color(255, 80, 40);
+    private static final Color VIOLET = new Color(140, 60, 255);
+    private static final Color ROSE = new Color(255, 50, 90);
+    private static final Color BLUE = new Color(50, 130, 255);
 
     private final CardLayout cards = new CardLayout();
     private final JPanel content = new JPanel(cards);
@@ -165,8 +165,8 @@ public class DashboardGUI extends JFrame {
 
         JLabel l = label(t, c, 9, Font.BOLD);
         JLabel val = label(v, TEXT, 22, Font.BOLD);
-        card.add(l);
-        card.add(val);
+        card.add(l, BorderLayout.NORTH);
+        card.add(val, BorderLayout.CENTER);
 
         p.add(card);
         return val;
@@ -189,8 +189,8 @@ public class DashboardGUI extends JFrame {
         col.add(title);
         col.add(desc);
 
-        card.add(col);
-        card.add(arr);
+        card.add(col, BorderLayout.CENTER);
+        card.add(arr, BorderLayout.EAST);
 
         card.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
