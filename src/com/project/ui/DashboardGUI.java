@@ -24,18 +24,18 @@ import javax.swing.WindowConstants;
 
 public class DashboardGUI extends JFrame {
 
-    private static final Color BG = new Color(10, 12, 20);
-    private static final Color SIDEBAR = new Color(16, 20, 32);
-    private static final Color CARD = new Color(22, 28, 44);
-    private static final Color CARD_HOVER = new Color(30, 38, 56);
-    private static final Color BORDER = new Color(35, 45, 65);
+    private static final Color BG = new Color(10, 12, 18);
+    private static final Color SIDEBAR = new Color(14, 17, 28);
+    private static final Color CARD = new Color(20, 25, 40);
+    private static final Color CARD_HOVER = new Color(28, 34, 54);
+    private static final Color BORDER = new Color(32, 40, 60);
     private static final Color TEXT = new Color(240, 244, 250);
-    private static final Color MUTED = new Color(140, 155, 180);
-    private static final Color CYAN = new Color(0, 210, 230);
-    private static final Color GREEN = new Color(0, 210, 130);
-    private static final Color AMBER = new Color(250, 170, 20);
-    private static final Color ROSE = new Color(240, 75, 85);
-    private static final Color INDIGO = new Color(120, 110, 250);
+    private static final Color MUTED = new Color(130, 145, 170);
+    private static final Color MINT = new Color(0, 212, 170);
+    private static final Color EMBER = new Color(255, 107, 53);
+    private static final Color VIOLET = new Color(124, 58, 237);
+    private static final Color ROSE = new Color(255, 68, 102);
+    private static final Color BLUE = new Color(59, 130, 246);
 
     private final CardLayout cards = new CardLayout();
     private final JPanel content = new JPanel(cards);
@@ -69,11 +69,11 @@ public class DashboardGUI extends JFrame {
 
         sb.add(logo());
         sb.add(spacer(20));
-        sb.add(nav("DASH", "Dashboard", CYAN));
-        sb.add(nav("BUILDS", "Build Catalog", GREEN));
-        sb.add(nav("GPU", "GPU Upgrades", AMBER));
-        sb.add(nav("BILL", "Billing", INDIGO));
-        sb.add(nav("REPORTS", "Reports", ROSE));
+        sb.add(nav("DASH", "Dashboard", MINT));
+        sb.add(nav("BUILDS", "Build Catalog", EMBER));
+        sb.add(nav("GPU", "GPU Upgrades", VIOLET));
+        sb.add(nav("BILL", "Billing", ROSE));
+        sb.add(nav("REPORTS", "Reports", BLUE));
         sb.add(spacer(0));
         sb.add(footer());
 
@@ -85,7 +85,7 @@ public class DashboardGUI extends JFrame {
         p.setBorder(BorderFactory.createEmptyBorder(22, 18, 18, 18));
         p.setMaximumSize(dim(210, 72));
 
-        JLabel a = label("PC BUILD", CYAN, 18, Font.BOLD);
+        JLabel a = label("PC BUILD", MINT, 18, Font.BOLD);
         JLabel b = label("STORE", TEXT, 18, Font.BOLD);
         p.add(a);
         p.add(b);
@@ -110,10 +110,10 @@ public class DashboardGUI extends JFrame {
     private JPanel content() {
         content.setBackground(BG);
         content.add(dashView(), "DASH");
-        content.add(placeholder("Build Catalog", GREEN), "BUILDS");
-        content.add(placeholder("GPU Upgrades", AMBER), "GPU");
-        content.add(placeholder("Billing", INDIGO), "BILL");
-        content.add(placeholder("Reports", ROSE), "REPORTS");
+        content.add(placeholder("Build Catalog", EMBER), "BUILDS");
+        content.add(placeholder("GPU Upgrades", VIOLET), "GPU");
+        content.add(placeholder("Billing", ROSE), "BILL");
+        content.add(placeholder("Reports", BLUE), "REPORTS");
         return content;
     }
 
@@ -127,10 +127,10 @@ public class DashboardGUI extends JFrame {
         stats.setMaximumSize(dim(9999, 95));
         stats.setAlignmentX(0);
 
-        s1 = stat(stats, "BUILDs", "0", CYAN);
-        s2 = stat(stats, "REVENUE", "Rs.0", GREEN);
-        s3 = stat(stats, "AVG SCORE", "0", AMBER);
-        s4 = stat(stats, "BILLS", "0", INDIGO);
+        s1 = stat(stats, "BUILDs", "0", MINT);
+        s2 = stat(stats, "REVENUE", "Rs.0", EMBER);
+        s3 = stat(stats, "AVG SCORE", "0", VIOLET);
+        s4 = stat(stats, "BILLS", "0", BLUE);
 
         v.add(stats);
         v.add(spacer(20));
@@ -143,10 +143,10 @@ public class DashboardGUI extends JFrame {
         JPanel grid = new JPanel(new java.awt.GridLayout(2, 2, 12, 12));
         grid.setBackground(BG);
         grid.setAlignmentX(0);
-        grid.add(modCard("Build Catalog", "Configure PC builds", GREEN, "BUILDS"));
-        grid.add(modCard("GPU Upgrades", "Upgrade options", AMBER, "GPU"));
-        grid.add(modCard("Billing", "Invoices and payments", INDIGO, "BILL"));
-        grid.add(modCard("Reports", "Analytics and insights", ROSE, "REPORTS"));
+        grid.add(modCard("Build Catalog", "Configure PC builds", EMBER, "BUILDS"));
+        grid.add(modCard("GPU Upgrades", "Upgrade options", VIOLET, "GPU"));
+        grid.add(modCard("Billing", "Invoices and payments", ROSE, "BILL"));
+        grid.add(modCard("Reports", "Analytics and insights", BLUE, "REPORTS"));
         v.add(grid);
 
         loadStats();
