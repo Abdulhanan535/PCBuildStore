@@ -68,6 +68,18 @@ public class GPUOptionDAO {
         return false;
     }
 
+    public int getGPUCount() {
+        String sql = "SELECT COUNT(*) FROM gpu_options";
+        try (Connection conn = DBConnection.get().connection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     private GPUOption mapGPU(ResultSet rs) throws SQLException {
         return new GPUOption(
             rs.getInt("gpu_id"),
