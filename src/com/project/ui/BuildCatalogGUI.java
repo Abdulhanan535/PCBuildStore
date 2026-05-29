@@ -51,6 +51,7 @@ public class BuildCatalogGUI extends JPanel {
     private JTextField ramField, storageField, psuField, priceField, scoreField;
     private JTextField searchField;
     private JButton addBtn, updateBtn, deleteBtn, clearBtn;
+    private JLabel countLabel;
     private int selectedBuildId = -1;
 
     public BuildCatalogGUI() {
@@ -98,7 +99,12 @@ public class BuildCatalogGUI extends JPanel {
         row.add(title, BorderLayout.WEST);
         row.add(searchField, BorderLayout.EAST);
 
+        countLabel = new JLabel("0 builds");
+        countLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        countLabel.setForeground(MUTED);
+
         h.add(row);
+        h.add(countLabel);
         return h;
     }
 
@@ -294,6 +300,7 @@ public class BuildCatalogGUI extends JPanel {
                 b.getPerformanceScore()
             });
         }
+        countLabel.setText(builds.size() + " builds");
     }
 
     private void filterByBudget() {
@@ -314,6 +321,7 @@ public class BuildCatalogGUI extends JPanel {
                     b.getPerformanceScore()
                 });
             }
+            countLabel.setText(builds.size() + " builds (max Rs." + budget + ")");
         } catch (NumberFormatException ex) {
             loadBuilds();
         }
