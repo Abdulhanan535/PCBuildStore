@@ -23,7 +23,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -156,10 +155,17 @@ public class BuildCatalogGUI extends JPanel {
     }
 
     private JPanel buildFormPanel() {
-        JPanel wrapper = new JPanel();
-        wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
+        JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(BG);
         wrapper.setPreferredSize(new Dimension(280, 0));
+
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setBackground(BG);
+        titleBar.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        JLabel formTitle = new JLabel("BUILD DETAILS");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        formTitle.setForeground(EMBER);
+        titleBar.add(formTitle, BorderLayout.WEST);
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setBackground(CARD);
@@ -220,7 +226,12 @@ public class BuildCatalogGUI extends JPanel {
         btns.add(clearBtn);
         form.add(btns, gbc);
 
-        wrapper.add(form);
+        wrapper.add(titleBar, BorderLayout.NORTH);
+        JScrollPane sp = new JScrollPane(form);
+        sp.setBorder(BorderFactory.createEmptyBorder());
+        sp.getViewport().setBackground(BG);
+        sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        wrapper.add(sp, BorderLayout.CENTER);
         return wrapper;
     }
 
