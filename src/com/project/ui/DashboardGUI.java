@@ -110,7 +110,7 @@ public class DashboardGUI extends JFrame {
     private JPanel content() {
         content.setBackground(BG);
         content.add(dashView(), "DASH");
-        content.add(placeholder("Build Catalog", EMBER), "BUILDS");
+        content.add(new BuildCatalogGUI(), "BUILDS");
         content.add(placeholder("GPU Upgrades", VIOLET), "GPU");
         content.add(placeholder("Billing", ROSE), "BILL");
         content.add(placeholder("Reports", BLUE), "REPORTS");
