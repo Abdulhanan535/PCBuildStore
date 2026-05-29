@@ -35,7 +35,6 @@ public class BuildCatalogGUI extends JPanel {
 
     private static final Color BG = new Color(8, 8, 12);
     private static final Color CARD = new Color(20, 20, 28);
-    private static final Color CARD_HOVER = new Color(28, 28, 38);
     private static final Color BORDER = new Color(35, 35, 50);
     private static final Color TEXT = new Color(245, 245, 250);
     private static final Color MUTED = new Color(120, 120, 145);
