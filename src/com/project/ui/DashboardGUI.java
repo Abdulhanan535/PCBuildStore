@@ -139,7 +139,7 @@ public class DashboardGUI extends JFrame {
         v.add(sec);
         v.add(spacer(12));
 
-        JPanel grid = new JPanel(new java.awt.GridLayout(2, 2, 12, 12));
+        JPanel grid = new JPanel(new java.awt.GridLayout(1, 3, 12, 0));
         grid.setBackground(BG);
         grid.setAlignmentX(0);
         grid.add(modCard("Build Catalog", "Configure PC builds", EMBER, "BUILDS"));
