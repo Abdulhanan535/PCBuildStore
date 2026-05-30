@@ -73,7 +73,6 @@ public class DashboardGUI extends JFrame {
         sb.add(nav("BUILDS", "Build Catalog", EMBER));
         sb.add(nav("GPU", "GPU Upgrades", VIOLET));
         sb.add(nav("BILL", "Billing", ROSE));
-        sb.add(nav("REPORTS", "Reports", BLUE));
         sb.add(spacer(0));
         sb.add(footer());
 
@@ -114,7 +113,6 @@ public class DashboardGUI extends JFrame {
         content.add(new BuildCatalogGUI(), "BUILDS");
         content.add(new GPUUpgradesGUI(), "GPU");
         content.add(new BillingGUI(), "BILL");
-        content.add(placeholder("Reports", BLUE), "REPORTS");
         return content;
     }
 
@@ -147,7 +145,6 @@ public class DashboardGUI extends JFrame {
         grid.add(modCard("Build Catalog", "Configure PC builds", EMBER, "BUILDS"));
         grid.add(modCard("GPU Upgrades", "Upgrade options", VIOLET, "GPU"));
         grid.add(modCard("Billing", "Invoices and payments", ROSE, "BILL"));
-        grid.add(modCard("Reports", "Analytics and insights", BLUE, "REPORTS"));
         v.add(grid);
 
         loadStats();
