@@ -135,10 +135,12 @@ public class BillingGUI extends JPanel {
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lbl.setForeground(TEXT);
 
-        budgetSelector = new JComboBox<>(new String[]{
-            "All", "50,000", "100,000", "150,000", "200,000", "250,000",
-            "300,000", "350,000", "400,000", "450,000", "500,000"
-        });
+        String[] budgets = new String[92];
+        budgets[0] = "All";
+        for (int i = 1; i < budgets.length; i++) {
+            budgets[i] = String.format("%,d", 50000 + (i - 1) * 5000);
+        }
+        budgetSelector = new JComboBox<>(budgets);
         budgetSelector.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         budgetSelector.setBackground(CARD);
         budgetSelector.setForeground(TEXT);
@@ -244,7 +246,10 @@ public class BillingGUI extends JPanel {
     }
 
     private void purchaseBuild() {
-        String[] budgets = {"50000", "100000", "150000", "200000", "250000", "300000", "350000", "400000", "450000", "500000"};
+        String[] budgets = new String[91];
+        for (int i = 0; i < budgets.length; i++) {
+            budgets[i] = String.valueOf(50000 + i * 5000);
+        }
         String budgetStr = (String) JOptionPane.showInputDialog(this, "Select your budget:", "Purchase Build",
             JOptionPane.QUESTION_MESSAGE, null, budgets, budgets[0]);
         if (budgetStr == null) return;
