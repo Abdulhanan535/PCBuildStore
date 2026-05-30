@@ -114,11 +114,11 @@ public class GPUUpgradesGUI extends JPanel {
         gbc.gridy = 0;
         panel.add(formTitle, gbc);
 
-        JTextField brandField = createField();
+        JTextField brandField = createField("e.g. Nvidia");
         gbc.gridy = 1;
         panel.add(brandField, gbc);
 
-        JTextField nameField = createField();
+        JTextField nameField = createField("e.g. RTX 4070 Ti");
         gbc.gridy = 2;
         panel.add(nameField, gbc);
 
@@ -134,11 +134,26 @@ public class GPUUpgradesGUI extends JPanel {
         return panel;
     }
 
-    private JTextField createField() {
-        JTextField field = new JTextField();
+    private JTextField createField(String placeholder) {
+        JTextField field = new JTextField() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                if (getText().isEmpty() && !hasFocus()) {
+                    java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                    g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                        java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                    g2.setColor(MUTED);
+                    g2.setFont(getFont());
+                    g2.drawString(placeholder, getInsets().left + 2, getHeight() / 2 + getFont().getSize() / 3);
+                    g2.dispose();
+                }
+            }
+        };
         field.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         field.setBackground(BG);
         field.setForeground(TEXT);
+        field.setCaretColor(TEXT);
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER),
             BorderFactory.createEmptyBorder(6, 8, 6, 8)

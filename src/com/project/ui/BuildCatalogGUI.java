@@ -307,7 +307,21 @@ public class BuildCatalogGUI extends JPanel {
     }
 
     private JTextField createField(String placeholder) {
-        JTextField f = new JTextField();
+        JTextField f = new JTextField() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                if (getText().isEmpty() && !hasFocus()) {
+                    java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                    g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                        java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                    g2.setColor(MUTED);
+                    g2.setFont(getFont());
+                    g2.drawString(placeholder, getInsets().left + 2, getHeight() / 2 + getFont().getSize() / 3);
+                    g2.dispose();
+                }
+            }
+        };
         f.setBackground(FIELD_BG);
         f.setForeground(TEXT);
         f.setCaretColor(TEXT);
