@@ -63,6 +63,7 @@ public class GPUUpgradesGUI extends JPanel {
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createLineBorder(BORDER));
+        scroll.getViewport().setBackground(CARD);
 
         add(header, BorderLayout.NORTH);
         add(scroll, BorderLayout.CENTER);
