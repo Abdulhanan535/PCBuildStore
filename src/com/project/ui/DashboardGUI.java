@@ -141,6 +141,7 @@ public class DashboardGUI extends JFrame {
 
         JPanel grid = new JPanel(new java.awt.GridLayout(1, 3, 12, 0));
         grid.setBackground(BG);
+        grid.setMaximumSize(dim(9999, 90));
         grid.setAlignmentX(0);
         grid.add(modCard("Build Catalog", "Configure PC builds", EMBER, "BUILDS"));
         grid.add(modCard("GPU Upgrades", "Upgrade options", VIOLET, "GPU"));
