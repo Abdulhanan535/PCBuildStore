@@ -67,6 +67,18 @@ public class BillDAO {
         return 0;
     }
 
+    public boolean deleteBill(int billId) {
+        String sql = "DELETE FROM bills WHERE bill_id = ?";
+        try (Connection conn = DBConnection.get().connection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, billId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Bill mapBill(ResultSet rs) throws SQLException {
         java.sql.Timestamp ts = rs.getTimestamp("purchase_date");
         LocalDateTime date = ts != null ? ts.toLocalDateTime() : null;
