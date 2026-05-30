@@ -2,6 +2,7 @@ package com.project.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -15,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -43,10 +45,16 @@ public class BuildCatalogGUI extends JPanel {
     private static final Color FIELD_BG = new Color(14, 14, 20);
     private static final Color FIELD_BORDER = new Color(40, 40, 55);
 
+    private static final Color INTEL_BLUE = new Color(70, 130, 255);
+    private static final Color AMD_RED = new Color(220, 20, 60);
+    private static final Color NVIDIA_GREEN = new Color(50, 205, 50);
+    private static final Color AMD_ORANGE = new Color(255, 140, 0);
+
     private final BuildDAO buildDAO = new BuildDAO();
     private DefaultTableModel tableModel;
     private JTable table;
-    private JTextField cpuModelField, cpuTypeField, gpuModelField, gpuTypeField;
+    private JComboBox<String> cpuTypeCombo, gpuTypeCombo;
+    private JTextField cpuModelField, gpuModelField;
     private JTextField ramField, storageField, psuField, priceField, scoreField;
     private JTextField searchField;
     private JButton addBtn, updateBtn, deleteBtn, clearBtn;
@@ -145,6 +153,45 @@ public class BuildCatalogGUI extends JPanel {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
+        table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object val, boolean sel, boolean foc, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, val, sel, foc, r, c);
+                if (!sel) {
+                    String type = val != null ? val.toString() : "";
+                    comp.setForeground(type.equalsIgnoreCase("Intel") ? INTEL_BLUE : AMD_RED);
+                }
+                return comp;
+            }
+        });
+
+        table.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object val, boolean sel, boolean foc, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, val, sel, foc, r, c);
+                if (!sel) {
+                    String type = val != null ? val.toString() : "";
+                    comp.setForeground(type.equalsIgnoreCase("Nvidia") ? NVIDIA_GREEN : AMD_ORANGE);
+                }
+                return comp;
+            }
+        });
+
+        table.getColumnModel().getColumn(9).setCellRenderer(new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object val, boolean sel, boolean foc, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, val, sel, foc, r, c);
+                if (!sel && val != null) {
+                    try {
+                        int score = Integer.parseInt(val.toString());
+                        int g = (score * 255) / 120;
+                        int red = ((120 - score) * 255) / 120;
+                        comp.setForeground(new Color(red, g, 0));
+                    } catch (NumberFormatException e) {
+                        comp.setForeground(TEXT);
+                    }
+                }
+                return comp;
+            }
+        });
+
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
@@ -184,21 +231,29 @@ public class BuildCatalogGUI extends JPanel {
         gbc.insets = new Insets(4, 0, 10, 0);
         gbc.weightx = 1;
 
+        cpuTypeCombo = new JComboBox<>(new String[]{"Intel", "AMD"});
+        cpuTypeCombo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        cpuTypeCombo.setBackground(FIELD_BG);
+        cpuTypeCombo.setForeground(TEXT);
+
+        gpuTypeCombo = new JComboBox<>(new String[]{"Nvidia", "AMD"});
+        gpuTypeCombo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        gpuTypeCombo.setBackground(FIELD_BG);
+        gpuTypeCombo.setForeground(TEXT);
+
         cpuModelField = createField("e.g. Ryzen 7 7800X3D");
-        cpuTypeField = createField("e.g. AMD");
         gpuModelField = createField("e.g. RTX 4070 Ti");
-        gpuTypeField = createField("e.g. NVIDIA");
         ramField = createField("e.g. 32GB DDR5");
         storageField = createField("e.g. 1TB NVMe SSD");
         psuField = createField("e.g. 750W Gold");
-        priceField = createField("e.g. 185000");
-        scoreField = createField("e.g. 92");
+        priceField = createField("e.g. 185000 (50k-500k, multiples of 5k)");
+        scoreField = createField("e.g. 92 (0-120)");
 
         int row = 0;
+        addFormRow(form, gbc, row++, "CPU Type", cpuTypeCombo);
         addFormRow(form, gbc, row++, "CPU Model", cpuModelField);
-        addFormRow(form, gbc, row++, "CPU Type", cpuTypeField);
+        addFormRow(form, gbc, row++, "GPU Type", gpuTypeCombo);
         addFormRow(form, gbc, row++, "GPU Model", gpuModelField);
-        addFormRow(form, gbc, row++, "GPU Type", gpuTypeField);
         addFormRow(form, gbc, row++, "RAM", ramField);
         addFormRow(form, gbc, row++, "Storage", storageField);
         addFormRow(form, gbc, row++, "PSU", psuField);
@@ -240,7 +295,7 @@ public class BuildCatalogGUI extends JPanel {
         return wrapper;
     }
 
-    private void addFormRow(JPanel p, GridBagConstraints gbc, int row, String label, JTextField field) {
+    private void addFormRow(JPanel p, GridBagConstraints gbc, int row, String label, Component field) {
         gbc.gridy = row;
         gbc.weighty = 0;
         JLabel l = new JLabel(label);
@@ -328,10 +383,10 @@ public class BuildCatalogGUI extends JPanel {
 
     private void fillForm(int row) {
         selectedBuildId = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
+        cpuTypeCombo.setSelectedItem(tableModel.getValueAt(row, 2).toString());
         cpuModelField.setText(tableModel.getValueAt(row, 1).toString());
-        cpuTypeField.setText(tableModel.getValueAt(row, 2).toString());
+        gpuTypeCombo.setSelectedItem(tableModel.getValueAt(row, 4).toString());
         gpuModelField.setText(tableModel.getValueAt(row, 3).toString());
-        gpuTypeField.setText(tableModel.getValueAt(row, 4).toString());
         ramField.setText(tableModel.getValueAt(row, 5).toString());
         storageField.setText(tableModel.getValueAt(row, 6).toString());
         psuField.setText(tableModel.getValueAt(row, 7).toString());
@@ -388,10 +443,10 @@ public class BuildCatalogGUI extends JPanel {
     }
 
     private void clearForm() {
+        cpuTypeCombo.setSelectedIndex(0);
         cpuModelField.setText("");
-        cpuTypeField.setText("");
+        gpuTypeCombo.setSelectedIndex(0);
         gpuModelField.setText("");
-        gpuTypeField.setText("");
         ramField.setText("");
         storageField.setText("");
         psuField.setText("");
@@ -403,25 +458,34 @@ public class BuildCatalogGUI extends JPanel {
 
     private Build buildFromForm() {
         String cpuModel = cpuModelField.getText().trim();
-        String cpuType = cpuTypeField.getText().trim();
+        String cpuType = (String) cpuTypeCombo.getSelectedItem();
         String gpuModel = gpuModelField.getText().trim();
-        String gpuType = gpuTypeField.getText().trim();
+        String gpuType = (String) gpuTypeCombo.getSelectedItem();
         String ram = ramField.getText().trim();
         String storage = storageField.getText().trim();
         String psu = psuField.getText().trim();
         String priceText = priceField.getText().trim();
         String scoreText = scoreField.getText().trim();
 
-        if (cpuModel.isEmpty() || cpuType.isEmpty() || gpuModel.isEmpty() || gpuType.isEmpty()
-                || ram.isEmpty() || storage.isEmpty() || psu.isEmpty()
-                || priceText.isEmpty() || scoreText.isEmpty()) {
+        if (cpuModel.isEmpty() || gpuModel.isEmpty() || ram.isEmpty()
+                || storage.isEmpty() || psu.isEmpty() || priceText.isEmpty() || scoreText.isEmpty()) {
             JOptionPane.showMessageDialog(this, "All fields are required.", "Validation", JOptionPane.WARNING_MESSAGE);
             return null;
         }
 
         try {
             int price = Integer.parseInt(priceText);
+            if (price < 50000 || price > 500000 || price % 5000 != 0) {
+                JOptionPane.showMessageDialog(this, "Price must be between 50,000-500,000 in multiples of 5,000.", "Validation", JOptionPane.WARNING_MESSAGE);
+                return null;
+            }
+
             int score = Integer.parseInt(scoreText);
+            if (score < 0 || score > 120) {
+                JOptionPane.showMessageDialog(this, "Score must be between 0-120.", "Validation", JOptionPane.WARNING_MESSAGE);
+                return null;
+            }
+
             return new Build(0, cpuModel, cpuType, gpuModel, gpuType, ram, storage, psu, price, score);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Price and Score must be numbers.", "Validation", JOptionPane.WARNING_MESSAGE);
