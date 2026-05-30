@@ -184,7 +184,13 @@ public class DashboardGUI extends JFrame {
         arr.setHorizontalAlignment(SwingConstants.RIGHT);
         arr.setVerticalAlignment(SwingConstants.CENTER);
 
-        card.add(title, BorderLayout.CENTER);
+        JPanel col = new JPanel(new java.awt.GridLayout(2, 1, 0, 2));
+        col.setBackground(CARD);
+        col.setOpaque(false);
+        col.add(title);
+        col.add(desc);
+
+        card.add(col, BorderLayout.CENTER);
         card.add(arr, BorderLayout.EAST);
 
         card.addMouseListener(new MouseAdapter() {
