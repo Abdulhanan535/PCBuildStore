@@ -112,7 +112,7 @@ public class DashboardGUI extends JFrame {
         content.add(dashView(), "DASH");
         content.add(placeholder("Build Catalog", EMBER), "BUILDS");
         content.add(placeholder("GPU Upgrades", VIOLET), "GPU");
-        content.add(placeholder("Billing", ROSE), "BILL");
+        content.add(new BillingGUI(), "BILL");
         content.add(placeholder("Reports", BLUE), "REPORTS");
         return content;
     }
