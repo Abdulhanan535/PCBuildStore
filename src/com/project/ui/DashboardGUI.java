@@ -109,6 +109,7 @@ public class DashboardGUI extends JFrame {
 
     private JPanel content() {
         content.setBackground(BG);
+        content.setOpaque(true);
         content.add(dashView(), "DASH");
         content.add(placeholder("Build Catalog", EMBER), "BUILDS");
         content.add(new GPUUpgradesGUI(), "GPU");
