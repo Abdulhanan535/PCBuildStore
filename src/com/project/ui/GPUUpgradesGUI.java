@@ -1,5 +1,7 @@
 package com.project.ui;
 
+import com.project.dao.GPUOptionDAO;
+import com.project.models.GPUOption;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,6 +9,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -15,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class GPUUpgradesGUI extends JPanel {
@@ -28,8 +32,10 @@ public class GPUUpgradesGUI extends JPanel {
 
     private DefaultTableModel tableModel;
     private JComboBox<String> brandFilter;
+    private GPUOptionDAO gpuDAO;
 
     public GPUUpgradesGUI() {
+        gpuDAO = new GPUOptionDAO();
         setLayout(new BorderLayout(16, 0));
         setBackground(BG);
         setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
@@ -40,6 +46,8 @@ public class GPUUpgradesGUI extends JPanel {
 
         brandFilter = new JComboBox<>(new String[]{"All Brands", "Nvidia", "AMD"});
         brandFilter.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        brandFilter.setBackground(CARD);
+        brandFilter.setForeground(TEXT);
 
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
@@ -68,6 +76,21 @@ public class GPUUpgradesGUI extends JPanel {
         add(header, BorderLayout.NORTH);
         add(scroll, BorderLayout.CENTER);
         add(createFormPanel(), BorderLayout.EAST);
+
+        loadGPUData();
+    }
+
+    private void loadGPUData() {
+        SwingUtilities.invokeLater(() -> {
+            tableModel.setRowCount(0);
+            List<GPUOption> gpus = gpuDAO.getAllGPUs();
+            for (GPUOption g : gpus) {
+                tableModel.addRow(new Object[]{
+                    g.getGpuId(), g.getBrand(), g.getName(),
+                    g.getForBudget(), g.getPriceIncrease(), g.getPerformanceIncrease()
+                });
+            }
+        });
     }
 
     private JPanel createFormPanel() {
