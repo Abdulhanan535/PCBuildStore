@@ -250,15 +250,15 @@ public class BuildCatalogGUI extends JPanel {
         scoreField = createField("e.g. 92 (0-120)");
 
         int row = 0;
-        addFormRow(form, gbc, row++, "CPU Type", cpuTypeCombo);
-        addFormRow(form, gbc, row++, "CPU Model", cpuModelField);
-        addFormRow(form, gbc, row++, "GPU Type", gpuTypeCombo);
-        addFormRow(form, gbc, row++, "GPU Model", gpuModelField);
-        addFormRow(form, gbc, row++, "RAM", ramField);
-        addFormRow(form, gbc, row++, "Storage", storageField);
-        addFormRow(form, gbc, row++, "PSU", psuField);
-        addFormRow(form, gbc, row++, "Total Price", priceField);
-        addFormRow(form, gbc, row++, "Score", scoreField);
+        addFormRow(form, gbc, row, "CPU Type", cpuTypeCombo); row += 2;
+        addFormRow(form, gbc, row, "CPU Model", cpuModelField); row += 2;
+        addFormRow(form, gbc, row, "GPU Type", gpuTypeCombo); row += 2;
+        addFormRow(form, gbc, row, "GPU Model", gpuModelField); row += 2;
+        addFormRow(form, gbc, row, "RAM", ramField); row += 2;
+        addFormRow(form, gbc, row, "Storage", storageField); row += 2;
+        addFormRow(form, gbc, row, "PSU", psuField); row += 2;
+        addFormRow(form, gbc, row, "Total Price", priceField); row += 2;
+        addFormRow(form, gbc, row, "Score", scoreField); row += 2;
 
         gbc.gridy = row++;
         gbc.weighty = 1;
