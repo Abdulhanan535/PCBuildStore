@@ -73,6 +73,8 @@ public class GPUUpgradesGUI extends JPanel {
         scroll.setBorder(BorderFactory.createLineBorder(BORDER));
         scroll.getViewport().setBackground(CARD);
 
+        brandFilter.addActionListener(e -> filterByBrand());
+
         add(header, BorderLayout.NORTH);
         add(scroll, BorderLayout.CENTER);
         add(createFormPanel(), BorderLayout.EAST);
@@ -84,6 +86,25 @@ public class GPUUpgradesGUI extends JPanel {
         SwingUtilities.invokeLater(() -> {
             tableModel.setRowCount(0);
             List<GPUOption> gpus = gpuDAO.getAllGPUs();
+            for (GPUOption g : gpus) {
+                tableModel.addRow(new Object[]{
+                    g.getGpuId(), g.getBrand(), g.getName(),
+                    g.getForBudget(), g.getPriceIncrease(), g.getPerformanceIncrease()
+                });
+            }
+        });
+    }
+
+    private void filterByBrand() {
+        SwingUtilities.invokeLater(() -> {
+            tableModel.setRowCount(0);
+            String brand = (String) brandFilter.getSelectedItem();
+            List<GPUOption> gpus;
+            if (brand.equals("All Brands")) {
+                gpus = gpuDAO.getAllGPUs();
+            } else {
+                gpus = gpuDAO.getGPUsByBrand(brand);
+            }
             for (GPUOption g : gpus) {
                 tableModel.addRow(new Object[]{
                     g.getGpuId(), g.getBrand(), g.getName(),
