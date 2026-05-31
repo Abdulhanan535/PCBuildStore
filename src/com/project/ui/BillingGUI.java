@@ -2,8 +2,10 @@ package com.project.ui;
 
 import com.project.dao.BillDAO;
 import com.project.dao.BuildDAO;
+import com.project.dao.GPUOptionDAO;
 import com.project.models.Bill;
 import com.project.models.Build;
+import com.project.models.GPUOption;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -50,6 +52,7 @@ public class BillingGUI extends JPanel {
     private JComboBox<String> budgetSelector;
     private BillDAO billDAO;
     private BuildDAO buildDAO;
+    private GPUOptionDAO gpuDAO;
     private int selectedBillId = -1;
 
     private JLabel cpuLabel, gpuLabel, ramLabel, storageLabel, psuLabel, priceLabel, scoreLabel;
@@ -57,6 +60,7 @@ public class BillingGUI extends JPanel {
     public BillingGUI() {
         billDAO = new BillDAO();
         buildDAO = new BuildDAO();
+        gpuDAO = new GPUOptionDAO();
         setLayout(new BorderLayout(0, 16));
         setBackground(BG);
         setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
@@ -266,25 +270,60 @@ public class BillingGUI extends JPanel {
             buildOptions[i] = b.getCpuModel() + " / " + b.getGpuModel() + " (Rs." + b.getTotalPrice() + ")";
         }
 
-        String selected = (String) JOptionPane.showInputDialog(this, "Select a build:", "Purchase Build",
+        String selectedBuild = (String) JOptionPane.showInputDialog(this, "Select a build:", "Purchase Build",
             JOptionPane.QUESTION_MESSAGE, null, buildOptions, buildOptions[0]);
-        if (selected == null) return;
-
-        int confirm = JOptionPane.showConfirmDialog(this, "Confirm purchase of:\n" + selected,
-            "Confirm", JOptionPane.YES_NO_OPTION);
-        if (confirm != JOptionPane.YES_OPTION) return;
+        if (selectedBuild == null) return;
 
         int buildIndex = 0;
         for (int i = 0; i < buildOptions.length; i++) {
-            if (buildOptions[i].equals(selected)) {
+            if (buildOptions[i].equals(selectedBuild)) {
                 buildIndex = i;
                 break;
             }
         }
-
         Build build = builds.get(buildIndex);
-        Bill bill = new Bill(0, build.getBuildId(), build.getCpuModel(), build.getGpuModel(),
-                            build.getTotalPrice(), build.getPerformanceScore(), null);
+
+        List<GPUOption> gpuOptions = gpuDAO.getGPUsByBudget(budget);
+        String finalGpu = build.getGpuModel();
+        int finalPrice = build.getTotalPrice();
+        int finalScore = build.getPerformanceScore();
+
+        if (!gpuOptions.isEmpty()) {
+            String[] gpuOpts = new String[gpuOptions.size() + 1];
+            gpuOpts[0] = "No upgrade (keep " + build.getGpuModel() + ")";
+            for (int i = 0; i < gpuOptions.size(); i++) {
+                GPUOption g = gpuOptions.get(i);
+                gpuOpts[i + 1] = g.getName() + " +" + String.format("%,d", g.getPriceIncrease()) 
+                    + " (+" + g.getPerformanceIncrease() + " score)";
+            }
+
+            String selectedGpu = (String) JOptionPane.showInputDialog(this, 
+                "Select a GPU upgrade for this build:", "GPU Upgrade",
+                JOptionPane.QUESTION_MESSAGE, null, gpuOpts, gpuOpts[0]);
+            if (selectedGpu == null) return;
+
+            if (!selectedGpu.startsWith("No upgrade")) {
+                for (int i = 0; i < gpuOptions.size(); i++) {
+                    if (selectedGpu.startsWith(gpuOptions.get(i).getName())) {
+                        finalGpu = gpuOptions.get(i).getName();
+                        finalPrice += gpuOptions.get(i).getPriceIncrease();
+                        finalScore += gpuOptions.get(i).getPerformanceIncrease();
+                        break;
+                    }
+                }
+            }
+        }
+
+        String summary = "Build: " + build.getCpuModel() + " / " + build.getGpuModel() + "\n"
+            + "GPU Upgrade: " + finalGpu + "\n"
+            + "Total Price: Rs." + String.format("%,d", finalPrice) + "\n"
+            + "Performance Score: " + finalScore;
+        int confirm = JOptionPane.showConfirmDialog(this, "Confirm purchase:\n" + summary,
+            "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        Bill bill = new Bill(0, build.getBuildId(), build.getCpuModel(), finalGpu,
+                            finalPrice, finalScore, null);
 
         if (billDAO.saveBill(bill)) {
             buildDAO.deleteBuild(build.getBuildId());

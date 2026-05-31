@@ -80,6 +80,20 @@ public class GPUOptionDAO {
         return 0;
     }
 
+    public List<GPUOption> getGPUsByBudget(int budget) {
+        List<GPUOption> list = new ArrayList<>();
+        String sql = "SELECT * FROM gpu_options WHERE for_budget <= ?";
+        try (Connection conn = DBConnection.get().connection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, budget);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) list.add(mapGPU(rs));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     private GPUOption mapGPU(ResultSet rs) throws SQLException {
         return new GPUOption(
             rs.getInt("gpu_id"),
