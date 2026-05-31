@@ -82,7 +82,7 @@ public class GPUOptionDAO {
 
     public List<GPUOption> getGPUsByBudget(int budget) {
         List<GPUOption> list = new ArrayList<>();
-        String sql = "SELECT * FROM gpu_options WHERE for_budget <= ?";
+        String sql = "SELECT * FROM gpu_options WHERE for_budget = ?";
         try (Connection conn = DBConnection.get().connection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, budget);

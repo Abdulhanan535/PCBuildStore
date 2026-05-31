@@ -41,7 +41,7 @@ public class BuildDAO {
 
     public List<Build> getBuildsByBudget(int budget) {
         List<Build> list = new ArrayList<>();
-        String sql = "SELECT * FROM builds WHERE total_price <= ?";
+        String sql = "SELECT * FROM builds WHERE total_price = ?";
         try (Connection conn = DBConnection.get().connection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, budget);
