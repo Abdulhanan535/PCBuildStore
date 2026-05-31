@@ -114,24 +114,91 @@ public class GPUUpgradesGUI extends JPanel {
         gbc.gridy = 0;
         panel.add(formTitle, gbc);
 
+        addLabel(panel, gbc, 1, "Brand");
         JTextField brandField = createField("e.g. Nvidia");
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         panel.add(brandField, gbc);
 
+        addLabel(panel, gbc, 3, "Model");
         JTextField nameField = createField("e.g. RTX 4070 Ti");
-        gbc.gridy = 2;
+        gbc.gridy = 4;
         panel.add(nameField, gbc);
+
+        addLabel(panel, gbc, 5, "For Budget");
+        JTextField budgetField = createField("e.g. 100000");
+        gbc.gridy = 6;
+        panel.add(budgetField, gbc);
+
+        addLabel(panel, gbc, 7, "Price Increase");
+        JTextField priceField = createField("e.g. 25000");
+        gbc.gridy = 8;
+        panel.add(priceField, gbc);
+
+        addLabel(panel, gbc, 9, "Performance Increase");
+        JTextField scoreField = createField("e.g. 10");
+        gbc.gridy = 10;
+        panel.add(scoreField, gbc);
 
         JButton addBtn = new JButton("Add GPU");
         addBtn.setBackground(VIOLET);
         addBtn.setForeground(Color.WHITE);
         addBtn.setFocusPainted(false);
         addBtn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        gbc.gridy = 3;
+        gbc.gridy = 11;
         gbc.insets = new Insets(16, 0, 6, 0);
         panel.add(addBtn, gbc);
 
+        addBtn.addActionListener(e -> addGPU(brandField, nameField, budgetField, priceField, scoreField));
+
         return panel;
+    }
+
+    private void addLabel(JPanel panel, GridBagConstraints gbc, int row, String text) {
+        gbc.gridy = row;
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        label.setForeground(MUTED);
+        panel.add(label, gbc);
+    }
+
+    private void addGPU(JTextField brandField, JTextField nameField, JTextField budgetField, 
+                        JTextField priceField, JTextField scoreField) {
+        try {
+            String brand = brandField.getText().trim();
+            String name = nameField.getText().trim();
+            String budgetStr = budgetField.getText().trim();
+            String priceStr = priceField.getText().trim();
+            String scoreStr = scoreField.getText().trim();
+
+            if (brand.isEmpty() || name.isEmpty() || budgetStr.isEmpty() || priceStr.isEmpty() || scoreStr.isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "All fields are required");
+                return;
+            }
+
+            int budget = Integer.parseInt(budgetStr);
+            int price = Integer.parseInt(priceStr);
+            int score = Integer.parseInt(scoreStr);
+
+            if (price < 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Price cannot be negative");
+                return;
+            }
+
+            GPUOption gpu = new GPUOption(0, brand, name, budget, price, score);
+            if (gpuDAO.addGPU(gpu)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "GPU added successfully!");
+                brandField.setText("");
+                nameField.setText("");
+                budgetField.setText("");
+                priceField.setText("");
+                scoreField.setText("");
+                loadGPUData();
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Failed to add GPU");
+            }
+        } catch (NumberFormatException ex) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Budget, Price, and Score must be numbers");
+        }
     }
 
     private JTextField createField(String placeholder) {

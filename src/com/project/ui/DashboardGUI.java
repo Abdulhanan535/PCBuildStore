@@ -236,6 +236,9 @@ public class DashboardGUI extends JFrame {
                 n.setActive(n.id.equals(id));
             }
         }
+        if (id.equals("DASH")) {
+            loadStats();
+        }
     }
 
     private void loadStats() {

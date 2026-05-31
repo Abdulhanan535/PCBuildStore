@@ -246,15 +246,13 @@ public class BillingGUI extends JPanel {
     }
 
     private void purchaseBuild() {
-        String[] budgets = new String[91];
-        for (int i = 0; i < budgets.length; i++) {
-            budgets[i] = String.valueOf(50000 + i * 5000);
+        int selectedIndex = budgetSelector.getSelectedIndex();
+        if (selectedIndex == 0) {
+            JOptionPane.showMessageDialog(this, "Please select a specific budget (not 'All')");
+            return;
         }
-        String budgetStr = (String) JOptionPane.showInputDialog(this, "Select your budget:", "Purchase Build",
-            JOptionPane.QUESTION_MESSAGE, null, budgets, budgets[0]);
-        if (budgetStr == null) return;
-
-        int budget = Integer.parseInt(budgetStr);
+        
+        int budget = 50000 + (selectedIndex - 1) * 5000;
         List<Build> builds = buildDAO.getBuildsByBudget(budget);
 
         if (builds.isEmpty()) {
@@ -289,6 +287,7 @@ public class BillingGUI extends JPanel {
                             build.getTotalPrice(), build.getPerformanceScore(), null);
 
         if (billDAO.saveBill(bill)) {
+            buildDAO.deleteBuild(build.getBuildId());
             JOptionPane.showMessageDialog(this, "Bill generated successfully!");
             loadBills();
         }
