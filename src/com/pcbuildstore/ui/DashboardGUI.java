@@ -51,7 +51,7 @@ public class DashboardGUI extends JFrame {
     private SwingWorker<Void, Integer> currentImageLoader;
 
     private BuildCatalogGUI buildCatalogGUI;
-    private GPUUpgradesGUI gpuUpgradesGUI;
+    private BuildUpgradesGUI buildUpgradesGUI;
     private BillingGUI billingGUI;
     private ReportGUI reportGUI;
 
@@ -69,13 +69,16 @@ public class DashboardGUI extends JFrame {
     private static final String[][] NAV = {
         {"DASH",    "Dashboard"},
         {"BUILDS",  "Build Configurator"},
-        {"GPU",     "GPU Upgrades"},
+        {"GPU",     "Build Upgrades"},
         {"BILL",    "Billing"},
         {"REPORTS", "Reports"}
     };
-    private static final String[] CAT_NAMES = {"Processors", "Graphics", "Memory", "Storage", "Power"};
-    private static final int[]    CAT_IDS    = {1, 2, 3, 4, 5};
-    private static final Color[]  CAT_ACC    = {Theme.INTEL_BLUE, Theme.NVIDIA_GRN, Theme.INFO, Theme.VIOLET, Theme.EMBER};
+    private static final String[] CAT_NAMES = {"Processors", "Graphics", "Memory", "Storage", "Power", "Motherboards"};
+    private static final int[]    CAT_IDS    = {1, 2, 3, 4, 5, 6};
+    private static final Color[]  CAT_ACC    = {Theme.INTEL_BLUE, Theme.NVIDIA_GRN, Theme.INFO, Theme.VIOLET, Theme.EMBER, Theme.ACCENT};
+
+    private static final int CHAT_TEXT_WIDTH = 220;
+    private static final int CHAT_BUBBLE_MAX = 240;
 
     public DashboardGUI() {
         setTitle("PC Build Store");
@@ -92,7 +95,7 @@ public class DashboardGUI extends JFrame {
         content.add(dashView(), "DASH");
 
         buildCatalogGUI = new BuildCatalogGUI(this);
-        gpuUpgradesGUI   = new GPUUpgradesGUI(this);
+        buildUpgradesGUI   = new BuildUpgradesGUI(this);
         billingGUI       = new BillingGUI(this);
         reportGUI        = new ReportGUI();
 
@@ -101,7 +104,7 @@ public class DashboardGUI extends JFrame {
         }
 
         content.add(buildCatalogGUI, "BUILDS");
-        content.add(gpuUpgradesGUI,  "GPU");
+        content.add(buildUpgradesGUI,  "GPU");
         content.add(billingGUI,      "BILL");
         content.add(reportGUI,       "REPORTS");
 
@@ -122,7 +125,7 @@ public class DashboardGUI extends JFrame {
         if (ni != null) { ni.setActive(true); activeNav = ni; }
         if (id.equals("DASH"))  refreshStats();
         if (id.equals("BUILDS")) buildCatalogGUI.onShow();
-        if (id.equals("GPU"))    gpuUpgradesGUI.onShow();
+        if (id.equals("GPU"))    buildUpgradesGUI.onShow();
         if (id.equals("BILL"))   billingGUI.onShow();
     }
 
@@ -172,10 +175,20 @@ public class DashboardGUI extends JFrame {
             navItems.put(n[0], ni);
             right.add(ni);
         }
+        JButton addBtn = Components.secondaryButton("+ Add part");
+        addBtn.setFont(Theme.medium(9));
+        addBtn.addActionListener(e -> {
+            AddPartDialog dlg = new AddPartDialog(this);
+            dlg.setVisible(true);
+            if (dlg.isSaved()) refreshStats();
+        });
+        right.add(Box.createHorizontalStrut(10));
+        right.add(addBtn);
         bar.add(right, BorderLayout.EAST);
         return bar;
     }
 
+    // ---- KEY FIX #1: GridBagLayout for the dashboard inner panel ----
     private JPanel dashView() {
         JPanel view = new JPanel(new BorderLayout());
         view.setBackground(Theme.BG);
@@ -183,35 +196,70 @@ public class DashboardGUI extends JFrame {
         JPanel side = createChatBotPanel();
         view.add(side, BorderLayout.WEST);
 
-        JPanel inner = new JPanel() {
+        JPanel inner = new JPanel(new GridBagLayout()) {
             @Override
             public Dimension getPreferredSize() {
-                Dimension d = super.getPreferredSize();
                 if (getParent() instanceof JViewport vp) {
-                    d.width = vp.getExtentSize().width;
+                    return new Dimension(vp.getExtentSize().width, super.getPreferredSize().height);
                 }
-                return d;
+                return super.getPreferredSize();
+            }
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
             }
         };
-        inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
         inner.setBackground(Theme.BG);
-        inner.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        inner.add(hero());
-        inner.add(createStatsRow());
-        inner.add(Components.vSpacer(14));
-        inner.add(createCategoryStrip());
-        inner.add(Components.vSpacer(14));
-        inner.add(sectionTitle("Featured parts", "Hand-picked from the catalog"));
-        inner.add(Components.vSpacer(10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(0, 0, 0, 0);
+
+        gbc.gridy = 0;
+        inner.add(hero(), gbc);
+
+        gbc.gridy = 1;
+        inner.add(createStatsRow(), gbc);
+
+        gbc.gridy = 2;
+        inner.add(Components.vSpacer(14), gbc);
+
+        gbc.gridy = 3;
+        inner.add(createCategoryStrip(), gbc);
+
+        gbc.gridy = 4;
+        inner.add(Components.vSpacer(14), gbc);
+
+        gbc.gridy = 5;
+        inner.add(sectionTitle("Featured parts", "Hand-picked from the catalog"), gbc);
+
+        gbc.gridy = 6;
+        inner.add(Components.vSpacer(10), gbc);
+
+        gbc.gridy = 7;
         featuredRow = makeFlexRow(12, 0, 24, 0, 24);
-        inner.add(featuredRow);
-        inner.add(Components.vSpacer(20));
-        inner.add(sectionTitle("Recent builds", "Your last 5 saved builds"));
-        inner.add(Components.vSpacer(10));
+        inner.add(featuredRow, gbc);
+
+        gbc.gridy = 8;
+        inner.add(Components.vSpacer(20), gbc);
+
+        gbc.gridy = 9;
+        inner.add(sectionTitle("Recent builds", "Your last 5 saved builds"), gbc);
+
+        gbc.gridy = 10;
+        inner.add(Components.vSpacer(10), gbc);
+
+        gbc.gridy = 11;
         recentBuildsRow = makeFlexRow(12, 0, 24, 18, 24);
-        inner.add(recentBuildsRow);
-        inner.add(Box.createVerticalGlue());
+        inner.add(recentBuildsRow, gbc);
+
+        gbc.gridy = 12;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        inner.add(Box.createVerticalGlue(), gbc);
 
         JScrollPane scroll = new JScrollPane(inner);
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -551,6 +599,7 @@ public class DashboardGUI extends JFrame {
         chatService.chatStream(chatHistory, token -> {
             SwingUtilities.invokeLater(() -> {
                 acc.append(token);
+                System.err.println("[ui] token(" + token.length() + "): " + token.replace("\n", "\\n").replace("\r", "\\r"));
                 appendToBotMessage(pending, acc.toString());
                 scrollChatToBottom();
             });
@@ -559,8 +608,8 @@ public class DashboardGUI extends JFrame {
                 chatInput.setEnabled(true);
                 chatSendBtn.setEnabled(true);
                 setChatStatus(Theme.ACCENT, "ONLINE");
-                finalizeBotMessage(pending, acc.toString());
                 String finalText = acc.toString().trim();
+                finalizeBotMessage(pending, finalText);
                 if (!finalText.isEmpty()) {
                     chatHistory.add(new ChatService.Message("assistant", finalText));
                 }
@@ -594,37 +643,37 @@ public class DashboardGUI extends JFrame {
         t.setFocusable(false);
         t.setLineWrap(true);
         t.setWrapStyleWord(true);
-        int h = computeTextHeight(t.getFont(), text, CHAT_TEXT_WIDTH);
-        t.setPreferredSize(new Dimension(CHAT_TEXT_WIDTH, h));
+        t.setColumns(CHAT_TEXT_WIDTH / t.getFontMetrics(t.getFont()).charWidth('m'));
         return t;
     }
 
-    private int computeTextHeight(Font font, String text, int width) {
-        FontMetrics fm = getFontMetrics(font);
-        int lineHeight = fm.getHeight();
-        if (text == null || text.isEmpty()) return lineHeight;
-        String[] paragraphs = text.split("\n", -1);
-        int totalLines = 0;
-        for (String para : paragraphs) {
-            if (para.isEmpty()) { totalLines++; continue; }
-            String[] words = para.split(" ");
-            StringBuilder line = new StringBuilder();
-            for (String word : words) {
-                String trial = line.length() == 0 ? word : line + " " + word;
-                if (fm.stringWidth(trial) > width) {
-                    totalLines++;
-                    line = new StringBuilder(word);
-                } else {
-                    line = new StringBuilder(trial);
-                }
-            }
-            totalLines++;
+    private void resizeStreamingArea(JTextArea t) {
+        FontMetrics fm = t.getFontMetrics(t.getFont());
+        int lineH = fm.getHeight();
+        int w = CHAT_TEXT_WIDTH;
+        int avail = w;
+        String txt = t.getText();
+        if (txt == null || txt.isEmpty()) txt = " ";
+        int lines = 0;
+        int x = 0;
+        for (int i = 0; i < txt.length(); i++) {
+            char c = txt.charAt(i);
+            if (c == '\n') { lines++; x = 0; continue; }
+            int cw = fm.charWidth(c);
+            if (x + cw > avail && x > 0) { lines++; x = cw; }
+            else x += cw;
         }
-        return lineHeight * totalLines;
+        lines++;
+        int h = lines * lineH + 20;
+        t.setPreferredSize(new Dimension(w, lines * lineH));
+        Container p = t.getParent();
+        while (p != null && p != chatMessagesWrap) {
+            p.revalidate();
+            p = p.getParent();
+        }
+        chatMessagesWrap.revalidate();
+        chatMessagesWrap.repaint();
     }
-
-    private static final int CHAT_TEXT_WIDTH = 220;
-    private static final int CHAT_BUBBLE_MAX = 240;
 
     private JPanel makeUserBubble(String text) {
         JPanel bubble = new JPanel(new BorderLayout()) {
@@ -663,7 +712,9 @@ public class DashboardGUI extends JFrame {
         bubble.setOpaque(false);
         bubble.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         bubble.setMaximumSize(new Dimension(CHAT_BUBBLE_MAX, Integer.MAX_VALUE));
-        bubble.add(makeMessageText(text, Theme.TEXT), BorderLayout.CENTER);
+        JTextArea t = makeMessageText(text, Theme.TEXT);
+        bubble.add(t, BorderLayout.CENTER);
+        resizeStreamingArea(t);
         return bubble;
     }
 
@@ -688,6 +739,7 @@ public class DashboardGUI extends JFrame {
     private JTextArea beginBotMessage() {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         row.setOpaque(false);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         JPanel bubble = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -704,31 +756,27 @@ public class DashboardGUI extends JFrame {
         };
         bubble.setOpaque(false);
         bubble.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        bubble.setMaximumSize(new Dimension(CHAT_BUBBLE_MAX, Integer.MAX_VALUE));
         JTextArea t = makeMessageText("...", Theme.TEXT);
         t.setName("bot-streaming");
         bubble.add(t, BorderLayout.CENTER);
         row.add(bubble);
+        resizeStreamingArea(t);
         chatMessagesWrap.add(row);
         chatMessagesWrap.revalidate();
+        chatMessagesWrap.repaint();
         return t;
     }
 
     private void appendToBotMessage(JTextArea t, String text) {
         t.setText(text);
-        t.setSize(new Dimension(CHAT_TEXT_WIDTH, Short.MAX_VALUE));
-        Dimension d = t.getPreferredSize();
-        t.setPreferredSize(new Dimension(CHAT_TEXT_WIDTH, d.height));
-        chatMessagesWrap.revalidate();
+        t.setForeground(Theme.TEXT);
+        resizeStreamingArea(t);
     }
 
     private void finalizeBotMessage(JTextArea t, String text) {
         t.setText(text);
-        t.setSize(new Dimension(CHAT_TEXT_WIDTH, Short.MAX_VALUE));
-        Dimension d = t.getPreferredSize();
-        t.setPreferredSize(new Dimension(CHAT_TEXT_WIDTH, d.height));
-        chatMessagesWrap.revalidate();
-        chatMessagesWrap.repaint();
+        t.setForeground(Theme.TEXT);
+        resizeStreamingArea(t);
     }
 
     private String escape(String s) {
@@ -749,8 +797,9 @@ public class DashboardGUI extends JFrame {
     private JPanel createStatsRow() {
         JPanel wrap = new JPanel(new BorderLayout());
         wrap.setOpaque(false);
-        wrap.setBorder(BorderFactory.createEmptyBorder(16, 24, 0, 24));
+        wrap.setBorder(BorderFactory.createEmptyBorder(16, 12, 0, 24));
         wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JPanel row = new JPanel(new GridBagLayout());
         row.setOpaque(false);
@@ -797,8 +846,9 @@ public class DashboardGUI extends JFrame {
     private JPanel createCategoryStrip() {
         JPanel wrap = new JPanel(new BorderLayout());
         wrap.setOpaque(false);
-        wrap.setBorder(BorderFactory.createEmptyBorder(0, 36, 0, 36));
+        wrap.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 36));
         wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         row.setOpaque(false);
@@ -856,8 +906,9 @@ public class DashboardGUI extends JFrame {
         JPanel p = new JPanel();
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setOpaque(false);
-        p.setBorder(BorderFactory.createEmptyBorder(0, 36, 0, 36));
+        p.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 36));
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         JLabel e = Components.eyebrow(eyebrow.toUpperCase());
         e.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel t = new JLabel(title);
@@ -966,6 +1017,7 @@ public class DashboardGUI extends JFrame {
             case 3: return "RAM";
             case 4: return "Storage";
             case 5: return "PSU";
+            case 6: return "Motherboard";
             default: return "?";
         }
     }

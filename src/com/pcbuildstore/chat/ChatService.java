@@ -36,6 +36,7 @@ public class ChatService {
 
     private void doStream(List<Message> history, Consumer<String> onToken, Runnable onDone, Consumer<String> onError, AtomicBoolean cancel) {
         try {
+            int debugCount = 0;
             String body = buildRequestBody(history);
 
             HttpRequest req = HttpRequest.newBuilder()
@@ -69,6 +70,10 @@ public class ChatService {
                         payload = payload.substring(5).trim();
                     }
                     if (payload.isEmpty() || "[DONE]".equals(payload)) continue;
+                    if (debugCount < 5) {
+                        debugCount++;
+                        System.err.println("[chat] RAW #" + debugCount + " (" + payload.length() + "): " + payload);
+                    }
                     try {
                         String content = extractDeltaContent(payload);
                         if (content != null && !content.isEmpty()) {
@@ -76,10 +81,11 @@ public class ChatService {
                             onToken.accept(content);
                         }
                     } catch (Exception ex) {
-                        System.err.println("Parse error on line: " + truncate(line, 100) + " | " + ex.getMessage());
+                        System.err.println("Parse error: " + ex.getMessage());
                     }
                 }
             }
+            System.err.println("[chat] stream ended. tokenCount=" + tokenCount + " rawLen=" + fullRaw.length());
             if (tokenCount == 0) {
                 String raw = fullRaw.toString().trim();
                 if (raw.isEmpty()) {
@@ -118,10 +124,9 @@ public class ChatService {
     }
 
     private static String extractDeltaContent(String json) {
-        String needle = "\"content\":\"";
-        int idx = json.indexOf(needle);
+        int idx = findContentKey(json);
         if (idx == -1) return null;
-        idx += needle.length();
+        idx += findNeedleLength(json, idx);
         StringBuilder sb = new StringBuilder();
         while (idx < json.length()) {
             char c = json.charAt(idx++);
@@ -142,6 +147,37 @@ public class ChatService {
             }
         }
         return sb.toString();
+    }
+
+    private static int findNeedleLength(String s, int idx) {
+        if (s.startsWith("\"reasoning_content\": \"", idx)) return 22;
+        if (s.startsWith("\"reasoning_content\":\"", idx)) return 21;
+        if (s.startsWith("\"content\": \"", idx)) return 12;
+        if (s.startsWith("\"content\":\"", idx)) return 11;
+        return 11;
+    }
+
+    private static int findContentKey(String s) {
+        String[] needles = {"\"reasoning_content\": \"", "\"reasoning_content\":\"", "\"content\": \"", "\"content\":\""};
+        int best = -1;
+        for (String n : needles) {
+            int i = s.indexOf(n);
+            if (i != -1 && (best == -1 || i < best)) best = i;
+        }
+        return best;
+    }
+
+    public static String stripThinking(String s) {
+        int start = s.indexOf("\u003cthink\u003e");
+        if (start == -1) return s;
+        int end = s.indexOf("\u003c/think\u003e", start);
+        if (end == -1) {
+            String before = s.substring(0, start).trim();
+            return before.isEmpty() ? s.substring(start + 8) : before + s.substring(start + 8);
+        }
+        String before = s.substring(0, start);
+        String after = s.substring(end + 9);
+        return (before + after).trim();
     }
 
     private String readAll(InputStream is) throws IOException {
