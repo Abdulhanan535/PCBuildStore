@@ -1,4 +1,4 @@
-package com.project.database;
+package com.pcbuildstore.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

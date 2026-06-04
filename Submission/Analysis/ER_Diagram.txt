@@ -1,0 +1,136 @@
+================================================================================
+                        ER DIAGRAM - PC Build Store Database
+================================================================================
+
+  +------------------+          +------------------+
+  |   CATEGORIES     |          |      BUILDS      |
+  +------------------+          +------------------+
+  | PK category_id   |----+     | PK build_id      |
+  |    name (UQ)     |    |     |    name          |
+  +------------------+    |     |    total_price   |
+          |               |     |    total_score   |
+          | 1             |     |    created_at    |
+          |               |     +------------------+
+          |               |            |       |
+          | *             |            |       |
+  +-------+--------+     |            | 1     | 1
+  |     PARTS      |     |            |       |
+  +------------------+   |            |       |
+  | PK part_id      |    |            |       |
+  | FK category_id  |----+            |       |
+  |    brand        |                 |       |
+  |    name         |                 |       |
+  |    price        |     +-----------+       |
+  |    performance  |     |                   |
+  |    socket_type  |     |                   |
+  |    ddr_gen      |     |                   |
+  |    core_count   |     |                   |
+  |    clock_speed  |     |                   |
+  |    vram         |     |                   |
+  |    memory_speed |     |                   |
+  |    capacity     |     |                   |
+  |    read_speed   |     |                   |
+  |    wattage      |     |                   |
+  |    efficiency   |     |                   |
+  |    image_path   |     |                   |
+  +------------------+   |                   |
+          ^               |                   |
+          |               |                   |
+          | *             |                   |
+  +-------+--------+     |                   |
+  |  BUILD_PARTS   |     |                   |
+  +------------------+   |                   |
+  | PK id           |    |                   |
+  | FK+PK build_id  |----+                   |
+  | FK+PK category  |------------------------+
+  | FK part_id      |-----> PARTS
+  |    price_at_add |
+  +------------------+
+
+
+  +------------------+
+  |      BILLS       |
+  +------------------+
+  | PK bill_id       |
+  | FK build_id      |-------> BUILDS
+  |    final_price   |
+  |    final_score   |
+  |    purchase_date |
+  +------------------+
+
+
+  +------------------+
+  |   GPU_OPTIONS    |
+  +------------------+
+  | PK gpu_option_id |
+  | FK gpu_part_id   |-------> PARTS
+  |    for_budget    |
+  |    price_incr    |
+  |    perf_incr     |
+  +------------------+
+
+
+================================================================================
+                           RELATIONSHIP SUMMARY
+================================================================================
+
+  Table            FK Column       References         Cardinality
+  ---------------  --------------- ------------------ -------------------
+  parts            category_id     categories         Many : 1
+  build_parts      build_id        builds             Many : 1
+  build_parts      category_id     categories         Many : 1
+  build_parts      part_id         parts              Many : 1
+  bills            build_id        builds             Many : 1
+  gpu_options      gpu_part_id     parts              Many : 1
+
+  UNIQUE CONSTRAINT on build_parts(build_id, category_id):
+    Each build can have at most ONE part per category.
+
+
+================================================================================
+                           ENTITY DESCRIPTIONS
+================================================================================
+
+  CATEGORIES
+  ----------
+  Stores the five hardware component types. Each part belongs to exactly one
+  category. The category_id is used throughout the system to distinguish
+  between CPU, GPU, RAM, Storage, and PSU.
+
+  PARTS
+  -----
+  The central entity containing all hardware parts. Uses a wide table design
+  where most columns are nullable - only category-specific columns are
+  populated per row. Columns map to category-specific attributes:
+    CPU   -> socket_type, ddr_generation, core_count, clock_speed
+    GPU   -> vram
+    RAM   -> ddr_generation, memory_speed, capacity
+    SSD   -> capacity, read_speed
+    PSU   -> wattage, efficiency
+
+  BUILDS
+  ------
+  Represents a PC build configuration. The total_price and total_score
+  are denormalized aggregates that are recalculated whenever build_parts
+  change. Each build can have multiple parts assigned via build_parts.
+
+  BUILD_PARTS
+  -----------
+  Junction table implementing the many-to-many relationship between builds
+  and parts, constrained so each build has at most one part per category.
+  The price_at_add column captures a price snapshot so historical build
+  costs remain accurate even if part prices change.
+
+  BILLS
+  -----
+  Records a finalized purchase. Each bill references a single build and
+  stores the final_price and final_score at the time of purchase. The
+  purchase_date is auto-set to the current timestamp.
+
+  GPU_OPTIONS
+  -----------
+  Defines GPU upgrade paths for builds. Each option specifies a target GPU
+  part, the budget tier it applies to, and the resulting price and
+  performance deltas. Used by the GPUUpgradesGUI to suggest upgrades.
+
+================================================================================

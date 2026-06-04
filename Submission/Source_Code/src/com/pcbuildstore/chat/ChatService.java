@@ -1,0 +1,211 @@
+package com.pcbuildstore.chat;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+public class ChatService {
+
+    public record Message(String role, String content) {}
+
+    private final ChatConfig config;
+    private final HttpClient client;
+
+    public ChatService(ChatConfig config) {
+        this.config = config;
+        this.client = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(15))
+            .build();
+    }
+
+    public void chatStream(List<Message> history, Consumer<String> onToken, Runnable onDone, Consumer<String> onError, AtomicBoolean cancel) {
+        Thread t = new Thread(() -> doStream(history, onToken, onDone, onError, cancel), "chat-stream");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void doStream(List<Message> history, Consumer<String> onToken, Runnable onDone, Consumer<String> onError, AtomicBoolean cancel) {
+        try {
+            int debugCount = 0;
+            String body = buildRequestBody(history);
+
+            HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(config.chatCompletionsUrl()))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + config.apiKey)
+                .header("Accept", "text/event-stream")
+                .timeout(Duration.ofSeconds(120))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+            HttpResponse<InputStream> resp = client.send(req, HttpResponse.BodyHandlers.ofInputStream());
+            int code = resp.statusCode();
+            if (code / 100 != 2) {
+                String err = readAll(resp.body());
+                onError.accept("HTTP " + code + ": " + truncate(err, 200));
+                onDone.run();
+                return;
+            }
+
+            StringBuilder fullRaw = new StringBuilder();
+            int tokenCount = 0;
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(resp.body(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (cancel != null && cancel.get()) break;
+                    if (line.isEmpty()) continue;
+                    fullRaw.append(line).append("\n");
+                    String payload = line;
+                    if (payload.startsWith("data:")) {
+                        payload = payload.substring(5).trim();
+                    }
+                    if (payload.isEmpty() || "[DONE]".equals(payload)) continue;
+                    if (debugCount < 5) {
+                        debugCount++;
+                        System.err.println("[chat] RAW #" + debugCount + " (" + payload.length() + "): " + payload);
+                    }
+                    try {
+                        String content = extractDeltaContent(payload);
+                        if (content != null && !content.isEmpty()) {
+                            tokenCount++;
+                            onToken.accept(content);
+                        }
+                    } catch (Exception ex) {
+                        System.err.println("Parse error: " + ex.getMessage());
+                    }
+                }
+            }
+            System.err.println("[chat] stream ended. tokenCount=" + tokenCount + " rawLen=" + fullRaw.length());
+            if (tokenCount == 0) {
+                String raw = fullRaw.toString().trim();
+                if (raw.isEmpty()) {
+                    onError.accept("Server returned no data. Check URL and API key.");
+                } else {
+                    onError.accept("No tokens parsed. Raw: " + truncate(raw, 300));
+                }
+            }
+            onDone.run();
+        } catch (IOException ex) {
+            onError.accept("Network error: " + ex.getMessage());
+            onDone.run();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            onError.accept("Interrupted");
+            onDone.run();
+        } catch (Exception ex) {
+            onError.accept("Error: " + ex.getMessage());
+            onDone.run();
+        }
+    }
+
+    private String buildRequestBody(List<Message> history) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"model\":").append(esc(config.model));
+        sb.append(",\"stream\":true");
+        sb.append(",\"messages\":[");
+        sb.append("{\"role\":\"system\",\"content\":").append(esc(config.systemPrompt)).append("}");
+        for (Message m : history) {
+            sb.append(",{\"role\":").append(esc(m.role()));
+            sb.append(",\"content\":").append(esc(m.content())).append("}");
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
+
+    private static String extractDeltaContent(String json) {
+        int idx = findContentKey(json);
+        if (idx == -1) return null;
+        idx += findNeedleLength(json, idx);
+        StringBuilder sb = new StringBuilder();
+        while (idx < json.length()) {
+            char c = json.charAt(idx++);
+            if (c == '\\' && idx < json.length()) {
+                char next = json.charAt(idx++);
+                switch (next) {
+                    case '"': sb.append('"'); break;
+                    case '\\': sb.append('\\'); break;
+                    case 'n': sb.append('\n'); break;
+                    case 't': sb.append('\t'); break;
+                    case 'r': sb.append('\r'); break;
+                    default: sb.append('\\').append(next); break;
+                }
+            } else if (c == '"') {
+                break;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static int findNeedleLength(String s, int idx) {
+        if (s.startsWith("\"reasoning_content\": \"", idx)) return 22;
+        if (s.startsWith("\"reasoning_content\":\"", idx)) return 21;
+        if (s.startsWith("\"content\": \"", idx)) return 12;
+        if (s.startsWith("\"content\":\"", idx)) return 11;
+        return 11;
+    }
+
+    private static int findContentKey(String s) {
+        String[] needles = {"\"reasoning_content\": \"", "\"reasoning_content\":\"", "\"content\": \"", "\"content\":\""};
+        int best = -1;
+        for (String n : needles) {
+            int i = s.indexOf(n);
+            if (i != -1 && (best == -1 || i < best)) best = i;
+        }
+        return best;
+    }
+
+    public static String stripThinking(String s) {
+        int start = s.indexOf("\u003cthink\u003e");
+        if (start == -1) return s;
+        int end = s.indexOf("\u003c/think\u003e", start);
+        if (end == -1) {
+            String before = s.substring(0, start).trim();
+            return before.isEmpty() ? s.substring(start + 8) : before + s.substring(start + 8);
+        }
+        String before = s.substring(0, start);
+        String after = s.substring(end + 9);
+        return (before + after).trim();
+    }
+
+    private String readAll(InputStream is) throws IOException {
+        try (is) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private static String esc(String s) {
+        if (s == null) return "\"\"";
+        StringBuilder sb = new StringBuilder("\"");
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '"': sb.append("\\\""); break;
+                case '\\': sb.append("\\\\"); break;
+                case '\n': sb.append("\\n"); break;
+                case '\t': sb.append("\\t"); break;
+                case '\r': sb.append("\\r"); break;
+                default: sb.append(c); break;
+            }
+        }
+        sb.append("\"");
+        return sb.toString();
+    }
+
+    private String truncate(String s, int n) {
+        if (s == null) return "";
+        return s.length() <= n ? s : s.substring(0, n) + "...";
+    }
+}
