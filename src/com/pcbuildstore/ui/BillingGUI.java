@@ -15,6 +15,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.awt.print.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -457,13 +458,17 @@ public class BillingGUI extends JPanel {
             Bill bill = new Bill(0, selectedBuildId, build.getTotalPrice(), build.getTotalScore(), null);
             boolean saved = billDAO.saveBill(bill);
             if (saved) {
-                JOptionPane.showMessageDialog(this, "Purchase complete!");
                 loadBills();
                 loadBuilds();
                 clearPreview();
                 selectedBuildId = -1;
                 buildSelector.setSelectedIndex(0);
                 dashboard.refreshStats();
+                List<Bill> bills = billDAO.getAllBills();
+                if (!bills.isEmpty()) {
+                    selectedBillId = bills.get(0).getBillId();
+                    viewReceipt();
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to save bill.");
             }
@@ -502,7 +507,6 @@ public class BillingGUI extends JPanel {
         receiptPanel.setLayout(new BoxLayout(receiptPanel, BoxLayout.Y_AXIS));
         receiptPanel.setBackground(Theme.SURFACE);
         receiptPanel.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        receiptPanel.setPreferredSize(new Dimension(480, 0));
 
         JLabel shop = new JLabel("PC BUILD STORE");
         shop.setFont(Theme.medium(10));
@@ -527,12 +531,7 @@ public class BillingGUI extends JPanel {
         receiptPanel.add(dt);
         receiptPanel.add(Components.vSpacer(16));
 
-        JPanel sep = new JPanel();
-        sep.setOpaque(true);
-        sep.setBackground(Theme.BORDER);
-        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        sep.setPreferredSize(new Dimension(0, 1));
-        receiptPanel.add(sep);
+        addSeparator(receiptPanel);
         receiptPanel.add(Components.vSpacer(14));
 
         JLabel buildLbl = new JLabel(build.getName());
@@ -573,12 +572,7 @@ public class BillingGUI extends JPanel {
         }
 
         receiptPanel.add(Components.vSpacer(8));
-        JPanel sep2 = new JPanel();
-        sep2.setOpaque(true);
-        sep2.setBackground(Theme.BORDER);
-        sep2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        sep2.setPreferredSize(new Dimension(0, 1));
-        receiptPanel.add(sep2);
+        addSeparator(receiptPanel);
         receiptPanel.add(Components.vSpacer(10));
 
         JPanel totalRow = new JPanel(new BorderLayout());
@@ -617,7 +611,162 @@ public class BillingGUI extends JPanel {
         thank.setAlignmentX(Component.LEFT_ALIGNMENT);
         receiptPanel.add(thank);
 
+        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        btnRow.setOpaque(false);
+        btnRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JButton printBtn = Components.primaryButton("Print");
+        Bill fb = bill;
+        Build bd = build;
+        List<BuildPart> bp = parts;
+        printBtn.addActionListener(e -> printReceipt(fb, bd, bp));
+        btnRow.add(printBtn);
+
+        JButton saveBtn = Components.primaryButton("Save");
+        saveBtn.addActionListener(e -> saveReceipt(fb, bd, bp));
+        btnRow.add(saveBtn);
+
+        receiptPanel.add(Components.vSpacer(12));
+        receiptPanel.add(btnRow);
+
         JOptionPane.showMessageDialog(this, receiptPanel, "Receipt #" + bill.getBillId(), JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private void addSeparator(JPanel panel) {
+        JPanel sep = new JPanel();
+        sep.setOpaque(true);
+        sep.setBackground(Theme.BORDER);
+        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        sep.setPreferredSize(new Dimension(0, 1));
+        panel.add(sep);
+    }
+
+    private void printReceipt(Bill bill, Build build, List<BuildPart> parts) {
+        Printable printable = (graphics, pageFormat, pageIndex) -> {
+            if (pageIndex > 0) return Printable.NO_SUCH_PAGE;
+            Graphics2D g2 = (Graphics2D) graphics;
+            g2.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+            int x = 10;
+            int y = 20;
+            int w = (int) pageFormat.getImageableWidth() - 20;
+
+            g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+            g2.drawString("PC BUILD STORE", x, y);
+            y += 16;
+            g2.setFont(new Font("Monospaced", Font.PLAIN, 9));
+            g2.drawString("Receipt #" + bill.getBillId(), x, y);
+            y += 12;
+            if (bill.getPurchaseDate() != null) {
+                g2.drawString(bill.getPurchaseDate().format(DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm")), x, y);
+            }
+            y += 6;
+            g2.drawLine(x, y, x + w, y);
+            y += 14;
+
+            g2.setFont(new Font("Monospaced", Font.BOLD, 12));
+            g2.drawString(build.getName(), x, y);
+            y += 16;
+
+            g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
+            for (BuildPart bp : parts) {
+                Part p = partDAO.getPartById(bp.getPartId());
+                if (p == null) continue;
+                String cat = bp.getCategoryName().toUpperCase();
+                String name = p.getBrand() + " " + p.getName();
+                String price = "PKR " + String.format("%,d", bp.getPriceAtAdd());
+                g2.drawString(cat + ": " + name, x, y);
+                g2.drawString(price, x + w - g2.getFontMetrics().stringWidth(price), y);
+                y += 13;
+            }
+
+            y += 4;
+            g2.drawLine(x, y, x + w, y);
+            y += 16;
+            g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+            String total = "PKR " + String.format("%,d", bill.getFinalPrice());
+            g2.drawString("TOTAL", x, y);
+            g2.drawString(total, x + w - g2.getFontMetrics().stringWidth(total), y);
+            y += 16;
+            g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
+            g2.drawString("Performance Score: " + bill.getFinalScore(), x, y);
+            y += 16;
+            g2.setFont(new Font("Monospaced", Font.ITALIC, 10));
+            g2.drawString("Thank you for your purchase.", x, y);
+
+            return Printable.PAGE_EXISTS;
+        };
+        PrinterJob job = PrinterJob.getPrinterJob();
+        job.setJobName("PCBuildStore Receipt #" + bill.getBillId());
+        job.setPrintable(printable);
+        if (job.printDialog()) {
+            try {
+                job.print();
+            } catch (PrinterException ex) {
+                JOptionPane.showMessageDialog(this, "Print failed: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void saveReceipt(Bill bill, Build build, List<BuildPart> parts) {
+        String html = buildReceiptHtml(bill, build, parts);
+        JFileChooser fc = new JFileChooser();
+        fc.setSelectedFile(new java.io.File("Receipt_" + bill.getBillId() + ".html"));
+        int opt = fc.showSaveDialog(null);
+        if (opt != JFileChooser.APPROVE_OPTION) return;
+        java.io.File file = fc.getSelectedFile();
+        try {
+            java.io.FileWriter fw = new java.io.FileWriter(file);
+            fw.write(html);
+            fw.close();
+            JOptionPane.showMessageDialog(null, "Receipt saved to:\n" + file.getAbsolutePath());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Failed to save: " + ex.getMessage());
+        }
+    }
+
+    private String buildReceiptHtml(Bill bill, Build build, List<BuildPart> parts) {
+        StringBuilder s = new StringBuilder();
+        s.append("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Receipt #");
+        s.append(bill.getBillId());
+        s.append("</title><style>");
+        s.append("body{font-family:monospace;max-width:500px;margin:40px auto;padding:20px;");
+        s.append("border:2px solid #333;color:#111}");
+        s.append("h1{text-align:center;margin:0;font-size:20px}");
+        s.append("h2{text-align:center;margin:4px 0 16px;font-size:14px;font-weight:normal;color:#666}");
+        s.append("hr{border:none;border-top:1px dashed #999;margin:16px 0}");
+        s.append("table{width:100%;border-collapse:collapse}");
+        s.append("td{padding:4px 0;font-size:13px}");
+        s.append(".total td{font-weight:bold;font-size:16px;border-top:2px solid #333;padding-top:8px}");
+        s.append(".score td{color:#e33;font-weight:bold}");
+        s.append(".footer{text-align:center;margin-top:20px;font-size:12px;color:#888}");
+        s.append("</style></head><body>");
+        s.append("<h1>PC BUILD STORE</h1>");
+        s.append("<h2>Receipt #").append(bill.getBillId()).append("</h2>");
+        s.append("<p style=\"font-size:12px;color:#666\">");
+        s.append(bill.getPurchaseDate() != null
+            ? bill.getPurchaseDate().format(DateTimeFormatter.ofPattern("MMM d, yyyy 'at' HH:mm"))
+            : "N/A");
+        s.append("</p>");
+        s.append("<hr>");
+        s.append("<p><b>Build:</b> ").append(build.getName()).append("</p>");
+        s.append("<table>");
+        for (BuildPart bp : parts) {
+            Part p = partDAO.getPartById(bp.getPartId());
+            if (p == null) continue;
+            s.append("<tr><td><b>").append(bp.getCategoryName().toUpperCase()).append("</b><br>");
+            s.append(p.getBrand()).append(" ").append(p.getName()).append("</td>");
+            s.append("<td style=\"text-align:right;white-space:nowrap\">PKR ");
+            s.append(String.format("%,d", bp.getPriceAtAdd())).append("</td></tr>");
+        }
+        s.append("<tr class=\"total\"><td>TOTAL</td><td style=\"text-align:right\">PKR ");
+        s.append(String.format("%,d", bill.getFinalPrice())).append("</td></tr>");
+        s.append("<tr class=\"score\"><td>PERFORMANCE SCORE</td><td style=\"text-align:right\">");
+        s.append(bill.getFinalScore()).append("</td></tr>");
+        s.append("</table><hr>");
+        s.append("<p class=\"footer\">Thank you for your purchase!</p>");
+        s.append("</body></html>");
+        return s.toString();
     }
 
     private void deleteBill() {
