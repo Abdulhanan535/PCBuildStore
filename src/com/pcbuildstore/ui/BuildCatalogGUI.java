@@ -38,6 +38,8 @@ public class BuildCatalogGUI extends JPanel {
     private String selectedDdrGen = null;
 
     private JPanel productGrid;
+    private JPanel rightPanel;
+    private boolean cartVisible = true;
     private JTextField searchField;
     private JLabel countLabel;
 
@@ -149,6 +151,12 @@ public class BuildCatalogGUI extends JPanel {
         JButton imageBtn = Components.secondaryButton("Set image");
         imageBtn.addActionListener(e -> openImageEditor());
         right.add(imageBtn);
+        right.add(Box.createHorizontalStrut(10));
+
+        JButton cartToggle = Components.secondaryButton("Cart");
+        cartToggle.addActionListener(e -> toggleCart());
+        right.add(cartToggle);
+
         row.add(right, BorderLayout.EAST);
         wrap.add(row);
         return wrap;
@@ -229,9 +237,18 @@ public class BuildCatalogGUI extends JPanel {
         productGrid = new JPanel();
         productGrid.setLayout(new GridLayout(0, 3, 12, 12));
         productGrid.setBackground(Theme.SIDEBAR);
-        productGrid.setBorder(BorderFactory.createEmptyBorder(0, 36, 8, 0));
+        productGrid.setBorder(BorderFactory.createEmptyBorder(0, 36, 8, 36));
 
-        JPanel gridWrap = new JPanel();
+        JPanel gridWrap = new JPanel() {
+            @Override
+            public Dimension getPreferredSize() {
+                Container c = getParent();
+                if (c instanceof JViewport) {
+                    return new Dimension(c.getWidth(), super.getPreferredSize().height);
+                }
+                return super.getPreferredSize();
+            }
+        };
         gridWrap.setLayout(new BoxLayout(gridWrap, BoxLayout.Y_AXIS));
         gridWrap.setBackground(Theme.SIDEBAR);
         gridWrap.add(productGrid);
@@ -240,11 +257,13 @@ public class BuildCatalogGUI extends JPanel {
         gridWrap.add(Box.createVerticalGlue());
 
         JScrollPane scroll = new JScrollPane(gridWrap);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         Components.applyDarkScrollbar(scroll);
         leftPanel.add(scroll, BorderLayout.CENTER);
         area.add(leftPanel, BorderLayout.CENTER);
 
-        area.add(createRightPanel(), BorderLayout.EAST);
+        rightPanel = createRightPanel();
+        area.add(rightPanel, BorderLayout.EAST);
         return area;
     }
 
@@ -270,9 +289,9 @@ public class BuildCatalogGUI extends JPanel {
         right.add(title);
         right.add(Components.vSpacer(10));
 
-        String[] slotNames = {"Processor", "Graphics", "Memory", "Storage", "Power"};
-        int[] slotIds = {1, 2, 3, 4, 5};
-        Color[] slotColors = {Theme.INTEL_BLUE, Theme.NVIDIA_GRN, Theme.INFO, Theme.VIOLET, Theme.EMBER};
+        String[] slotNames = {"Processor", "Graphics", "Memory", "Storage", "Power", "Motherboard"};
+        int[] slotIds = {1, 2, 3, 4, 5, 6};
+        Color[] slotColors = {Theme.INTEL_BLUE, Theme.NVIDIA_GRN, Theme.INFO, Theme.VIOLET, Theme.EMBER, Theme.ACCENT};
 
         for (int i = 0; i < slotNames.length; i++) {
             right.add(createSlot(slotNames[i], slotIds[i], slotColors[i]));
@@ -768,6 +787,15 @@ public class BuildCatalogGUI extends JPanel {
         for (Part p : partById.values()) if (p.hasImage()) toLoad.add(p);
         if (toLoad.isEmpty()) return;
         ImageCache.loadBatch(toLoad, imageLabelsByPartId, 80, 80, null);
+    }
+
+    private void toggleCart() {
+        cartVisible = !cartVisible;
+        rightPanel.setVisible(cartVisible);
+        rightPanel.revalidate();
+        rightPanel.repaint();
+        revalidate();
+        repaint();
     }
 
     private void openImageEditor() {
